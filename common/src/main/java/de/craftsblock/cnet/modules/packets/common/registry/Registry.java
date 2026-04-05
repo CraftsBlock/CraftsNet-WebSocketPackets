@@ -83,7 +83,10 @@ public interface Registry<T> {
      */
     @SuppressWarnings("unchecked")
     default boolean isRegistered(@Nullable T t) {
-        if (t == null) return false;
+        if (t == null) {
+            return false;
+        }
+
         return this.isRegistered((Class<? extends T>) t.getClass());
     }
 

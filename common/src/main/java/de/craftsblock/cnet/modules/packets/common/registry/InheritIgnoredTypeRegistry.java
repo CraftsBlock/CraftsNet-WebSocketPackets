@@ -35,8 +35,9 @@ public class InheritIgnoredTypeRegistry<T> implements Registry<T> {
      */
     @Override
     public void register(Class<? extends T> key, T value) {
-        if (isRegistered(key))
+        if (isRegistered(key)) {
             throw new IllegalStateException("There is already a value for key %s!".formatted(key.getName()));
+        }
 
         storage.put(key, value);
     }
@@ -65,7 +66,10 @@ public class InheritIgnoredTypeRegistry<T> implements Registry<T> {
     @Override
     @SuppressWarnings("unchecked")
     public <R extends T> R getOrDefault(@NotNull Class<? extends R> key, @Nullable R fallback) {
-        if (storage.containsKey(key)) return (R) storage.get(key);
+        if (storage.containsKey(key)) {
+            return (R) storage.get(key);
+        }
+
         return fallback;
     }
 
@@ -79,7 +83,10 @@ public class InheritIgnoredTypeRegistry<T> implements Registry<T> {
      */
     @Override
     public boolean isRegistered(@Nullable Class<? extends T> type) {
-        if (type == null) return false;
+        if (type == null) {
+            return false;
+        }
+
         return storage.containsKey(type);
     }
 

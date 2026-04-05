@@ -4,7 +4,4 @@ repositories {
 }
 
 dependencies {
-    // ToDo: Remove when the byte buffer is no longer located in craftsnet
-    // https://repo.craftsblock.de/#/releases/de/craftsblock/craftsnet
-    compileOnly "de.craftsblock:craftsnet:3.5.3"
 }

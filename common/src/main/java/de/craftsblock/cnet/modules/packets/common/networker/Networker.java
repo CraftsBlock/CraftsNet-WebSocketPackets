@@ -2,7 +2,6 @@ package de.craftsblock.cnet.modules.packets.common.networker;
 
 import de.craftsblock.cnet.modules.packets.common.networker.environment.Environment;
 import de.craftsblock.cnet.modules.packets.common.packet.Packet;
-import de.craftsblock.craftsnet.api.websocket.ClosureCode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -37,7 +36,7 @@ public interface Networker {
 
     /**
      * Disconnects the network connection with the given textual reason,
-     * using the {@link ClosureCode#NORMAL} closure code by default.
+     * using the 1000 (Normal) closure code by default.
      *
      * @param reason The reason for disconnecting, never {@code null}
      */

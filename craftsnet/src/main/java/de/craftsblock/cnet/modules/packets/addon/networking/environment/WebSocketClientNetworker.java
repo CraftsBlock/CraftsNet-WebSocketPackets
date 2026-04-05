@@ -35,8 +35,9 @@ public record WebSocketClientNetworker(long id, Environment environment, WebSock
     public WebSocketClientNetworker(Environment environment, WebSocketClient client) {
         this(Snowflake.generate(), environment, client);
 
-        if (environment == null)
+        if (environment == null) {
             throw new IllegalStateException("Must be located inside a valid environment! (Got: null)");
+        }
     }
 
     /**

@@ -41,10 +41,11 @@ public class WebSocketPackets {
      * @throws IllegalStateException if the system is loaded more than once.
      */
     public void onLoad() {
-        if (instance != null)
+        if (instance != null) {
             throw new IllegalStateException("%s can not be loaded twice by the same class loader!".formatted(
                     this.getClass().getSimpleName()
             ));
+        }
 
         instance = this;
 
@@ -105,8 +106,10 @@ public class WebSocketPackets {
      * @throws IllegalStateException if the system is not loaded
      */
     public static void loadedOrThrow() {
-        WebSocketPackets microservices = WebSocketPackets.getInstance();
-        if (microservices != null) return;
+        WebSocketPackets webSocketPackets = WebSocketPackets.getInstance();
+        if (webSocketPackets != null) {
+            return;
+        }
 
         throw new IllegalStateException("%s must be loaded!".formatted(WebSocketPackets.class.getSimpleName()));
     }

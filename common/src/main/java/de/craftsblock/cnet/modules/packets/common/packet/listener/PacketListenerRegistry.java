@@ -1,7 +1,7 @@
 package de.craftsblock.cnet.modules.packets.common.packet.listener;
 
+import de.craftsblock.cnet.modules.packets.common.copied.TypeUtils;
 import de.craftsblock.cnet.modules.packets.common.registry.InheritIgnoredTypeRegistry;
-import de.craftsblock.craftsnet.utils.reflection.TypeUtils;
 
 import java.util.Stack;
 import java.util.function.BiConsumer;
@@ -53,8 +53,9 @@ public class PacketListenerRegistry extends InheritIgnoredTypeRegistry<PacketLis
      */
     private void register0(Class<? extends PacketListener> key, PacketListener value, Stack<Class<?>> walked) {
         if (walked.contains(key) || key == null
-                || Object.class.equals(key) || TYPE_ROOT.equals(key))
+                || Object.class.equals(key) || TYPE_ROOT.equals(key)) {
             return;
+        }
 
         walked.push(key);
 
@@ -87,8 +88,9 @@ public class PacketListenerRegistry extends InheritIgnoredTypeRegistry<PacketLis
      * @return The unregistered listener instance, or {@code null} if none was registered.
      */
     private PacketListener unregister0(Class<? extends PacketListener> key, Stack<Class<?>> walked) {
-        if (walked.contains(key))
+        if (walked.contains(key)) {
             return null;
+        }
 
         walked.push(key);
 
@@ -122,12 +124,15 @@ public class PacketListenerRegistry extends InheritIgnoredTypeRegistry<PacketLis
                                       PacketListener value,
                                       BiConsumer<Class<? extends PacketListener>, PacketListener> consumer) {
         Class<?> superclass = key.getSuperclass();
-        if (TypeUtils.isAssignable(TYPE_ROOT, superclass))
+        if (TypeUtils.isAssignable(TYPE_ROOT, superclass)) {
             consumer.accept((Class<? extends PacketListener>) superclass, value);
+        }
 
-        for (Class<?> face : key.getInterfaces())
-            if (TypeUtils.isAssignable(TYPE_ROOT, face))
+        for (Class<?> face : key.getInterfaces()) {
+            if (TypeUtils.isAssignable(TYPE_ROOT, face)) {
                 consumer.accept((Class<? extends PacketListener>) face, value);
+            }
+        }
     }
 
 }

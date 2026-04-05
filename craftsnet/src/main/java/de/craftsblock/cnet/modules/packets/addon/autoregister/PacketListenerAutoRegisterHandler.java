@@ -46,7 +46,9 @@ public class PacketListenerAutoRegisterHandler extends AutoRegisterHandler<Packe
      */
     @Override
     protected boolean handle(PacketListener packetListener, AutoRegisterInfo info, Object... args) {
-        if (registry.isRegistered(packetListener)) return false;
+        if (registry.isRegistered(packetListener)) {
+            return false;
+        }
 
         registry.register(packetListener);
         return true;
