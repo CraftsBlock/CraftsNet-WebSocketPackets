@@ -1,8 +1,10 @@
 package de.craftsblock.cnet.modules.packets.common.networker.builtin;
 
 import de.craftsblock.cnet.modules.packets.common.networker.Networker;
+import de.craftsblock.craftscore.buffer.BufferUtil;
 
 import java.net.http.WebSocket;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,13 +20,18 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version 1.0.0
  * @since 1.1.0
  */
-record WebSocketConnection(WebSocket webSocket, Networker networker, AtomicReference<ByteBuffer> accumulator) {
+record WebSocketConnection(WebSocket webSocket, Networker networker, AtomicReference<BufferUtil> accumulator) {
 
     /**
      * Clears and resets the accumulator buffer.
      */
     synchronized void clearAccumulator() {
-        accumulator.set(ByteBuffer.allocate(32));
+        BufferUtil old = accumulator.get();
+        if (old != null) {
+            old.purge();
+        }
+
+        accumulator.set(BufferUtil.allocate(32));
     }
 
     /**
@@ -34,16 +41,8 @@ record WebSocketConnection(WebSocket webSocket, Networker networker, AtomicRefer
      * @param additionalCapacity The number of bytes to accommodate.
      * @return The buffer ready for writing additional data.
      */
-    synchronized ByteBuffer ensureCapacityAndGetAccumulator(int additionalCapacity) {
-        ByteBuffer accumulator = accumulator().get();
-        if (accumulator.remaining() >= additionalCapacity)
-            return accumulator;
-
-        ByteBuffer expandedBuffer = ByteBuffer.allocate(accumulator.capacity() + additionalCapacity);
-        accumulator.flip();
-        expandedBuffer.put(accumulator);
-
-        return expandedBuffer;
+    synchronized BufferUtil ensureCapacityAndGetAccumulator(int additionalCapacity) {
+        return accumulator.get().ensure(additionalCapacity, 4096);
     }
 
 }

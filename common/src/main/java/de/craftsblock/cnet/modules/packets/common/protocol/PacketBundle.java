@@ -1,7 +1,7 @@
 package de.craftsblock.cnet.modules.packets.common.protocol;
 
 import de.craftsblock.cnet.modules.packets.common.packet.Packet;
-import de.craftsblock.craftsnet.utils.ByteBuffer;
+import de.craftsblock.craftscore.buffer.BufferUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -17,7 +17,7 @@ import java.util.function.Function;
  * <p>
  * A {@code PacketBundle} acts as a container that maps packet classes
  * to numeric IDs and provides the ability to reconstruct packets
- * from raw {@link ByteBuffer} data via registered deserializer functions.
+ * from raw {@link BufferUtil} data via registered deserializer functions.
  * It enables consistent packet encoding and decoding across instances
  * while ensuring versioned compatibility.
  *
@@ -33,7 +33,7 @@ import java.util.function.Function;
 public record PacketBundle(@NotNull String identifier,
                            @Range(from = 0, to = Integer.MAX_VALUE) int version,
                            @Unmodifiable Map<Class<? extends Packet>, Integer> packetIDs,
-                           @Unmodifiable List<Function<ByteBuffer, ? extends Packet>> deserializers) {
+                           @Unmodifiable List<Function<BufferUtil, ? extends Packet>> deserializers) {
 
     /**
      * Constructs a new {@code PacketBundle} with the provided identifier, version,
@@ -49,14 +49,15 @@ public record PacketBundle(@NotNull String identifier,
     public PacketBundle(@NotNull String identifier,
                         @Range(from = 0, to = Integer.MAX_VALUE) int version,
                         @Unmodifiable Map<Class<? extends Packet>, Integer> packetIDs,
-                        @Unmodifiable List<Function<ByteBuffer, ? extends Packet>> deserializers) {
+                        @Unmodifiable List<Function<BufferUtil, ? extends Packet>> deserializers) {
         this.identifier = identifier.toLowerCase().trim();
         this.version = version;
 
-        if (packetIDs.size() != deserializers.size())
+        if (packetIDs.size() != deserializers.size()) {
             throw new IllegalArgumentException("The length of packets and deserializers must match! (Packets: %s; Deserializers: %s)".formatted(
                     packetIDs.size(), deserializers.size()
             ));
+        }
 
         this.packetIDs = packetIDs;
         this.deserializers = deserializers;
@@ -70,9 +71,11 @@ public record PacketBundle(@NotNull String identifier,
      * @return A new {@link Packet} instance, or {@code null} if no deserializer exists for the given ID.
      */
     public Packet createPacket(@Range(from = 0, to = Integer.MAX_VALUE) int id,
-                               @NotNull ByteBuffer buffer) {
-        Function<ByteBuffer, ? extends Packet> generator = deserializers.get(id);
-        if (generator == null) return null;
+                               @NotNull BufferUtil buffer) {
+        Function<BufferUtil, ? extends Packet> generator = deserializers.get(id);
+        if (generator == null) {
+            return null;
+        }
 
         return generator.apply(buffer);
     }
@@ -84,7 +87,10 @@ public record PacketBundle(@NotNull String identifier,
      * @return The associated packet ID, or {@code -1} if the packet type is not registered.
      */
     public @Range(from = -1, to = Integer.MAX_VALUE) int getId(@Nullable Packet packet) {
-        if (packet == null) return -1;
+        if (packet == null) {
+            return -1;
+        }
+
         return this.getId(packet.getClass());
     }
 
@@ -95,7 +101,10 @@ public record PacketBundle(@NotNull String identifier,
      * @return The associated packet ID, or {@code -1} if the class is not registered.
      */
     public @Range(from = -1, to = Integer.MAX_VALUE) int getId(@Nullable Class<? extends Packet> packetClass) {
-        if (packetClass == null) return -1;
+        if (packetClass == null) {
+            return -1;
+        }
+
         return packetIDs.getOrDefault(packetClass, -1);
     }
 
@@ -106,7 +115,10 @@ public record PacketBundle(@NotNull String identifier,
      * @return {@code true} if the packet is registered, {@code false} otherwise.
      */
     public boolean containsPacket(@Nullable Packet packet) {
-        if (packet == null) return false;
+        if (packet == null) {
+            return false;
+        }
+
         return this.containsPacket(packet.getClass());
     }
 
@@ -117,7 +129,10 @@ public record PacketBundle(@NotNull String identifier,
      * @return {@code true} if the class is registered, {@code false} otherwise.
      */
     public boolean containsPacket(@Nullable Class<? extends Packet> packetClass) {
-        if (packetClass == null) return false;
+        if (packetClass == null) {
+            return false;
+        }
+
         return packetIDs.containsKey(packetClass);
     }
 

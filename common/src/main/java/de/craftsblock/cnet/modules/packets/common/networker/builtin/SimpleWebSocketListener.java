@@ -4,6 +4,7 @@ import de.craftsblock.cnet.modules.packets.common.networker.Networker;
 import de.craftsblock.cnet.modules.packets.common.networker.environment.Environment;
 import de.craftsblock.cnet.modules.packets.common.packet.Packet;
 import de.craftsblock.cnet.modules.packets.common.packet.codec.PacketDecoder;
+import de.craftsblock.craftscore.buffer.BufferUtil;
 
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
@@ -114,18 +115,16 @@ public record SimpleWebSocketListener(Environment environment) implements WebSoc
         message.get(data);
 
         Networker networker = connection.networker();
-        ByteBuffer accumulator = connection.ensureCapacityAndGetAccumulator(data.length);
-        accumulator.put(data);
+        BufferUtil accumulator = connection.ensureCapacityAndGetAccumulator(data.length);
+        accumulator.with(buffer -> buffer.put(data));
 
-        if (!last) return WebSocket.Listener.super.onBinary(webSocket, message, false);
-
-        accumulator.flip();
-        byte[] packetData = new byte[accumulator.remaining()];
-        accumulator.get(packetData);
+        if (!last) {
+            return WebSocket.Listener.super.onBinary(webSocket, message, false);
+        }
 
         try {
-            Packet packet = PACKET_DECODER.decode(new de.craftsblock.craftsnet.utils.ByteBuffer(packetData));
             packet.handle(networker);
+            Packet packet = PACKET_DECODER.decode(accumulator.trim().with(ByteBuffer::flip));
 
             return WebSocket.Listener.super.onBinary(webSocket, message, true);
         } finally {

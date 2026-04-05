@@ -4,7 +4,10 @@ import de.craftsblock.cnet.modules.packets.common.WebSocketPackets;
 import de.craftsblock.cnet.modules.packets.common.packet.Packet;
 import de.craftsblock.cnet.modules.packets.common.packet.WrappedPacket;
 import de.craftsblock.cnet.modules.packets.common.protocol.PacketBundle;
-import de.craftsblock.craftsnet.utils.ByteBuffer;
+import de.craftsblock.craftscore.buffer.BufferUtil;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Encodes {@link Packet} instances into {@link ByteBuffer byte buffers} for transmission
@@ -48,7 +51,7 @@ public record PacketEncoder(WebSocketPackets webSocketPackets) {
      * @return A {@link ByteBuffer} containing the encoded packet data.
      * @throws IllegalStateException If the packet is unknown or exceeds {@link #MAX_PACKET_SIZE}.
      */
-    public ByteBuffer encode(Packet packet) {
+    public BufferUtil encode(Packet packet) {
         String bundle;
         int id;
 
@@ -57,27 +60,38 @@ public record PacketEncoder(WebSocketPackets webSocketPackets) {
             id = wrapped.id();
         } else {
             PacketBundle packetBundle = webSocketPackets.getPacketBundleRegistry().getBundle(packet);
-            if (packetBundle == null || !packetBundle.containsPacket(packet))
+            if (packetBundle == null || !packetBundle.containsPacket(packet)) {
                 throw new IllegalStateException("Failed to encode a unknown packet %s".formatted(packet.getClass().getName()));
+            }
 
             bundle = packetBundle.identifier();
             id = packetBundle.getId(packet);
         }
 
-        ByteBuffer buffer = new ByteBuffer(4, false);
-        buffer.writeUTF(bundle);
-        buffer.writeVarInt(id);
+        BufferUtil buffer = BufferUtil.of(ByteBuffer.allocate(
+                bundle.getBytes(StandardCharsets.UTF_8).length + 8
+        ));
+        buffer.putUtf(bundle);
+        buffer.putVarInt(id);
 
-        int metaSize = buffer.writerIndex();
-        packet.write(buffer);
+        int metaSize = buffer.getRaw().position();
 
-        int packetSize = buffer.writerIndex() - metaSize;
-        if (packetSize > MAX_PACKET_SIZE)
+        BufferUtil packetData = BufferUtil.of(ByteBuffer.allocate(128));
+        packet.write(packetData);
+        packetData.trim().with(ByteBuffer::flip);
+
+        buffer.ensure(packetData.getRaw().capacity()).getRaw()
+                .put(packetData.getRaw());
+        buffer.trim();
+
+        int packetSize = buffer.map(ByteBuffer::position) - metaSize;
+        if (packetSize > MAX_PACKET_SIZE) {
             throw new IllegalStateException("Packet %s exceeded max size! (Got: %s, Max: %s)".formatted(
                     packet.getClass().getSimpleName(), packetSize, MAX_PACKET_SIZE
             ));
+        }
 
-        return buffer;
+        return buffer.with(ByteBuffer::flip);
     }
 
 }

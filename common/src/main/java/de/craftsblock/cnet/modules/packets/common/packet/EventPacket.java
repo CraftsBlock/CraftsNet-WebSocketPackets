@@ -2,8 +2,8 @@ package de.craftsblock.cnet.modules.packets.common.packet;
 
 import de.craftsblock.cnet.modules.packets.common.networker.Networker;
 import de.craftsblock.cnet.modules.packets.common.networker.environment.Environment;
+import de.craftsblock.craftscore.buffer.BufferUtil;
 import de.craftsblock.craftscore.event.Event;
-import de.craftsblock.craftsnet.utils.ByteBuffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
@@ -13,7 +13,7 @@ import java.lang.reflect.InvocationTargetException;
  * {@link BufferWritable}.
  * <p>
  * This interface allows events to be sent over the network as packets. It provides
- * default implementations for {@link #write(ByteBuffer)} and {@link #handle(Networker)},
+ * default implementations for {@link #write(BufferUtil)} and {@link #handle(Networker)},
  * delegating serialization to the underlying event and firing the event through the
  * networker's listener registry when handled.
  * <p>
@@ -36,7 +36,7 @@ public interface EventPacket<E extends Event & BufferWritable> extends Packet {
      * @param buffer The buffer to write the event data into.
      */
     @Override
-    default void write(@NotNull ByteBuffer buffer) {
+    default void write(@NotNull BufferUtil buffer) {
         getEvent().write(buffer);
     }
 

@@ -4,7 +4,10 @@ import de.craftsblock.cnet.modules.packets.common.WebSocketPackets;
 import de.craftsblock.cnet.modules.packets.common.packet.Packet;
 import de.craftsblock.cnet.modules.packets.common.packet.WrappedPacket;
 import de.craftsblock.cnet.modules.packets.common.protocol.PacketBundle;
-import de.craftsblock.craftsnet.utils.ByteBuffer;
+import de.craftsblock.craftscore.buffer.BufferUtil;
+
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 
 /**
  * Decodes incoming packet data from a {@link ByteBuffer} into {@link Packet} instances.
@@ -38,22 +41,25 @@ public final class PacketDecoder {
      * @return The decoded {@link Packet}.
      * @throws IllegalStateException If the packet exceeds {@link PacketEncoder#MAX_PACKET_SIZE}.
      */
-    public Packet decode(ByteBuffer buffer) {
+    public Packet decode(BufferUtil buffer) {
         WebSocketPackets webSocketPackets = WebSocketPackets.getInstanceSafely();
 
-        String identifier = buffer.readUTF();
+        String identifier = buffer.getUtf();
         PacketBundle packetBundle = webSocketPackets.getPacketBundleRegistry().getBundle(identifier);
-        if (packetBundle == null)
+        if (packetBundle == null) {
             return new WrappedPacket(buffer);
+        }
 
-        int id = buffer.readVarInt();
+        int id = buffer.getVarInt();
 
-        if (buffer.size() > PacketEncoder.MAX_PACKET_SIZE)
+        int size = buffer.map(Buffer::capacity);
+        if (size > PacketEncoder.MAX_PACKET_SIZE) {
             throw new IllegalStateException("Packet %s#%s exceeded max size! (Got: %s, Max: %s)".formatted(
-                    identifier, id, buffer.size(), PacketEncoder.MAX_PACKET_SIZE
+                    identifier, id, size, PacketEncoder.MAX_PACKET_SIZE
             ));
+        }
 
-        ByteBuffer packet = new ByteBuffer(buffer.readRemaining(), true);
+        BufferUtil packet = BufferUtil.of(buffer.getRaw().slice());
         return packetBundle.createPacket(id, packet);
     }
 

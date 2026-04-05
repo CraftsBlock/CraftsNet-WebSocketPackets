@@ -54,7 +54,7 @@ public record WebSocketNetworker(long id, Environment environment, WebSocket web
     @Override
     public synchronized void send(@NotNull Packet packet) {
         PacketEncoder packetEncoder = new PacketEncoder(environment.getWebSocketPackets());
-        ByteBuffer message = ByteBuffer.wrap(packetEncoder.encode(packet).getSource());
+        ByteBuffer message = packetEncoder.encode(packet).getRaw();
         webSocket().sendBinary(message, true).join();
     }
 

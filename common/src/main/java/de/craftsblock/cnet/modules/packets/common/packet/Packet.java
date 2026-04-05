@@ -2,20 +2,20 @@ package de.craftsblock.cnet.modules.packets.common.packet;
 
 import de.craftsblock.cnet.modules.packets.common.networker.Networker;
 import de.craftsblock.cnet.modules.packets.common.packet.listener.PacketListener;
-import de.craftsblock.craftsnet.utils.ByteBuffer;
+import de.craftsblock.craftscore.buffer.BufferUtil;
 
 /**
  * Represents a network {@code Packet} that can be serialized, sent, and handled.
  * <p>
  * Implementations of this interface define how a packet is written to a
- * {@link ByteBuffer} and how it should be processed when received by a
+ * {@link BufferUtil} and how it should be processed when received by a
  * {@link Networker}. Packets may also retrieve their corresponding
  * {@link PacketListener} from the network environment to delegate handling logic.
  *
  * @author Philipp Maywald
  * @author CraftsBlock
  * @version 1.0.0
- * @see ByteBuffer
+ * @see BufferUtil
  * @see Networker
  * @see PacketListener
  * @since 1.0.0

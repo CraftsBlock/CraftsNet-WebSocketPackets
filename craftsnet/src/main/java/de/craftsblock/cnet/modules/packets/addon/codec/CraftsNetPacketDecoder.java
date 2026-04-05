@@ -2,6 +2,7 @@ package de.craftsblock.cnet.modules.packets.addon.codec;
 
 import de.craftsblock.cnet.modules.packets.common.packet.Packet;
 import de.craftsblock.cnet.modules.packets.common.packet.codec.PacketDecoder;
+import de.craftsblock.craftscore.buffer.BufferUtil;
 import de.craftsblock.craftsnet.api.websocket.Frame;
 import de.craftsblock.craftsnet.api.websocket.codec.WebSocketSafeTypeDecoder;
 
@@ -31,7 +32,7 @@ public final class CraftsNetPacketDecoder implements WebSocketSafeTypeDecoder<Pa
      */
     @Override
     public Packet decode(Frame frame) {
-        return PACKET_DECODER.decode(frame.getBuffer());
+        return PACKET_DECODER.decode(BufferUtil.wrap(frame.getData()));
     }
 
 }

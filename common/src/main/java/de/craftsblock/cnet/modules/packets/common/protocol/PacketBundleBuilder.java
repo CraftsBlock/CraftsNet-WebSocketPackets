@@ -1,7 +1,7 @@
 package de.craftsblock.cnet.modules.packets.common.protocol;
 
 import de.craftsblock.cnet.modules.packets.common.packet.Packet;
-import de.craftsblock.craftsnet.utils.ByteBuffer;
+import de.craftsblock.craftscore.buffer.BufferUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -31,7 +31,7 @@ public class PacketBundleBuilder {
     private final @Range(from = 0, to = Integer.MAX_VALUE) int version;
 
     private final @NotNull HashMap<Class<? extends Packet>, Integer> packetIDs = new HashMap<>();
-    private final @NotNull List<Function<ByteBuffer, ? extends Packet>> deserializers = new ArrayList<>();
+    private final @NotNull List<Function<BufferUtil, ? extends Packet>> deserializers = new ArrayList<>();
 
     /**
      * Creates a new {@code PacketBundleBuilder} for the given identifier and version.
@@ -53,13 +53,13 @@ public class PacketBundleBuilder {
      * an exception to prevent accidental duplicate registrations.
      *
      * @param packetClass The packet class to register.
-     * @param generator   The deserializer function that reconstructs the packet from a {@link ByteBuffer}.
+     * @param generator   The deserializer function that reconstructs the packet from a {@link BufferUtil}.
      * @param <P>         The type of packet being registered.
      * @return This builder instance for method chaining.
      * @throws IllegalStateException If the packet class has already been registered.
      */
     public synchronized <P extends Packet> PacketBundleBuilder addPacket(@NotNull Class<P> packetClass,
-                                                                         @NotNull Function<ByteBuffer, P> generator) {
+                                                                         @NotNull Function<BufferUtil, P> generator) {
         int packetID = deserializers.size();
         Integer formerPacketID = packetIDs.put(packetClass, packetID);
 

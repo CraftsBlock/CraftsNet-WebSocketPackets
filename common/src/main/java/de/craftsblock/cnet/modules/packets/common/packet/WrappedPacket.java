@@ -2,7 +2,7 @@ package de.craftsblock.cnet.modules.packets.common.packet;
 
 import de.craftsblock.cnet.modules.packets.common.networker.Networker;
 import de.craftsblock.cnet.modules.packets.common.protocol.PacketBundle;
-import de.craftsblock.craftsnet.utils.ByteBuffer;
+import de.craftsblock.craftscore.buffer.BufferUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * or is otherwise wrapped for transmission purposes.
  * <p>
  * The {@link WrappedPacket} stores the raw bundle identifier, packet ID, and
- * packet data bytes. It provides serialization through {@link #write(ByteBuffer)}
+ * packet data bytes. It provides serialization through {@link #write(BufferUtil)}
  * but cannot be processed via {@link #handle(Networker)} since the underlying
  * packet type is unknown.
  * <p>
@@ -24,19 +24,19 @@ import org.jetbrains.annotations.NotNull;
  * @author CraftsBlock
  * @version 1.0.0
  * @see Packet
- * @see ByteBuffer
+ * @see BufferUtil
  * @since 1.0.0
  */
 public record WrappedPacket(String bundle, int id, byte[] data) implements Packet {
 
     /**
-     * Constructs a {@link WrappedPacket} by reading from a {@link ByteBuffer}.
+     * Constructs a {@link WrappedPacket} by reading from a {@link BufferUtil}.
      *
      * @param buffer The buffer containing the serialized wrapped packet data.
      */
-    public WrappedPacket(ByteBuffer buffer) {
+    public WrappedPacket(BufferUtil buffer) {
         // Needs to read the hole packet as the decoder does not read anything
-        this(buffer.readUTF(), buffer.readVarInt(), buffer.readRemaining());
+        this(buffer.getUtf(), buffer.getVarInt(), buffer.getRemainingBytes());
     }
 
     /**
@@ -47,9 +47,10 @@ public record WrappedPacket(String bundle, int id, byte[] data) implements Packe
      * @param buffer The buffer to write the raw packet data into.
      */
     @Override
-    public void write(@NotNull ByteBuffer buffer) {
+    public void write(@NotNull BufferUtil buffer) {
         // No need to write the bundle and id as the encoder does that
-        buffer.write(data);
+        buffer.ensure(data.length, 1024);
+        buffer.with(b -> b.put(data));
     }
 
     /**
