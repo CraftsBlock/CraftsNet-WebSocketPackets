@@ -79,8 +79,16 @@ public record SimpleWebSocketListener(Environment environment) implements WebSoc
         WebSocket.Listener.super.onError(webSocket, error);
         WebSocketConnection connection = this.onClose0(webSocket);
 
-        if (connection == null) throw new RuntimeException(error);
-        throw new RuntimeException("Error in connection %s".formatted(connection.networker().getId()), error);
+        if (error instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        }
+
+        if (connection == null) {
+            throw new RuntimeException("Uncaught exception in connection", error);
+        }
+
+        throw new RuntimeException("Uncaught exception in connection "
+                + connection.networker().getId(), error);
     }
 
     /**
