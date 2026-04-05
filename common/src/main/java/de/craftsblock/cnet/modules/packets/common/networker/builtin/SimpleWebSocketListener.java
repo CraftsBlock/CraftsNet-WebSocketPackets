@@ -102,6 +102,24 @@ public record SimpleWebSocketListener(Environment environment) implements WebSoc
     }
 
     /**
+     * Handles incoming text WebSocket messages.
+     * <p>
+     * Throws an exception because only binary messages should be accepted.
+     * </p>
+     *
+     * @param webSocket The WebSocket on which the data has been received.
+     * @param data      The data.
+     * @param last      Whether this invocation completes the message.
+     * @return Will throw an exception so no return value will be passed.
+     * @throws IllegalStateException Will be thrown on invocation. Only binary messages should be received.
+     */
+    @Override
+    @Contract("_, _, _ -> fail")
+    public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+        throw new IllegalStateException("Received non binary message: " + data);
+    }
+
+    /**
      * Handles incoming binary WebSocket messages.
      * <p>
      * Accumulates partial messages, decodes complete messages into packets,
