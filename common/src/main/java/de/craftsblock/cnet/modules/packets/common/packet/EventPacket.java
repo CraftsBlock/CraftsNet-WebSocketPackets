@@ -6,8 +6,6 @@ import de.craftsblock.craftscore.buffer.BufferUtil;
 import de.craftsblock.craftscore.event.Event;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * Represents a {@link Packet} that wraps a {@link Event} which must also be
  * {@link BufferWritable}.
@@ -52,16 +50,12 @@ public interface EventPacket<E extends Event & BufferWritable> extends Packet {
     default void handle(Networker networker) {
         Event event = getEvent();
 
-        try {
-            Environment environment = networker.getEnvironment();
-            if (!environment.hasListenerRegistry())
-                throw new UnsupportedOperationException("Received event in environment without listener registry!");
-
-            environment.getListenerRegistry().call(event);
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException("Could not fire event %s from network!"
-                    .formatted(event.getClass().getName()), e);
+        Environment environment = networker.getEnvironment();
+        if (!environment.hasListenerRegistry()) {
+            throw new UnsupportedOperationException("Received event in environment without listener registry!");
         }
+
+        environment.getListenerRegistry().call(event);
     }
 
     /**
