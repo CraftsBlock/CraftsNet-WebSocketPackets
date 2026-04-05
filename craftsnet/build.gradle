@@ -7,7 +7,7 @@ dependencies {
     implementation project(":common")
 
     // https://repo.craftsblock.de/#/releases/de/craftsblock/craftsnet
-    compileOnly "de.craftsblock:craftsnet:3.5.3"
+    implementation "de.craftsblock:craftsnet:3.7.1"
 }
 
 tasks.withType(Jar).configureEach {
