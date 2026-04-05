@@ -5,12 +5,14 @@ import de.craftsblock.cnet.modules.packets.common.networker.environment.Environm
 import de.craftsblock.cnet.modules.packets.common.packet.Packet;
 import de.craftsblock.cnet.modules.packets.common.packet.codec.PacketDecoder;
 import de.craftsblock.craftscore.buffer.BufferUtil;
+import org.jetbrains.annotations.Contract;
 
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 
 /**
  * Internal listener for handling WebSocket events.
@@ -20,17 +22,30 @@ import java.util.concurrent.atomic.AtomicReference;
  * and ping/pong responses.
  * </p>
  *
- * @param environment The environment providing packet system context.
+ * @param environment   The {@link Environment} providing packet system context.
+ * @param packetHandler The packet handle that should be called when a new packet arrives.
  * @author Philipp Maywald
  * @author CraftsBlock
  * @version 1.0.0
  * @since 1.1.0
  */
 @SuppressWarnings("unused")
-public record SimpleWebSocketListener(Environment environment) implements WebSocket.Listener {
+public record SimpleWebSocketListener(Environment environment, BiConsumer<Networker, Packet> packetHandler) implements WebSocket.Listener {
 
     private static final PacketDecoder PACKET_DECODER = new PacketDecoder();
     private static final ConcurrentHashMap<WebSocket, WebSocketConnection> connections = new ConcurrentHashMap<>(1);
+
+    /**
+     * Constructs an {@link SimpleWebSocketListener} with an {@link Environment}
+     * and default way to handle packets by calling {@link Packet#handle(Networker)}.
+     * Will throw an exception when receiving
+     * {@link de.craftsblock.cnet.modules.packets.common.packet.WrappedPacket} packets.
+     *
+     * @param environment The {@link Environment} providing packet system context.
+     */
+    public SimpleWebSocketListener(Environment environment) {
+        this(environment, (networker, packet) -> packet.handle(networker));
+    }
 
     /**
      * Called when a WebSocket connection is opened.
@@ -134,8 +149,9 @@ public record SimpleWebSocketListener(Environment environment) implements WebSoc
     @Override
     public CompletionStage<?> onBinary(WebSocket webSocket, ByteBuffer message, boolean last) {
         WebSocketConnection connection = connections.get(webSocket);
-        if (connection == null)
+        if (connection == null) {
             throw new IllegalStateException("No connection found for web socket %s!".formatted(webSocket));
+        }
 
         byte[] data = new byte[message.remaining()];
         message.get(data);
@@ -149,8 +165,8 @@ public record SimpleWebSocketListener(Environment environment) implements WebSoc
         }
 
         try {
-            packet.handle(networker);
             Packet packet = PACKET_DECODER.decode(accumulator.trim().with(ByteBuffer::flip));
+            packetHandler().accept(networker, packet);
 
             return WebSocket.Listener.super.onBinary(webSocket, message, true);
         } finally {
