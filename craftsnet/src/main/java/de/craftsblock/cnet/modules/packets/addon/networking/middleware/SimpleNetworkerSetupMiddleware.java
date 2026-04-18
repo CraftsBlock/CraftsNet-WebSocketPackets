@@ -13,8 +13,7 @@ import de.craftsblock.craftsnet.api.websocket.WebSocketClient;
  * {@link WebSocketClientNetworker} instances for {@link WebSocketClient}s.
  * <p>
  * On connection, a {@link WebSocketClientNetworker} is created and stored in
- * the client's session under the key {@link #SESSION_NETWORKER_KEY}.
- * On disconnection, the entry is removed.
+ * the client's context. On disconnection, the entry is removed.
  * <p>
  * This allows simple retrieval of the associated networker instance
  * from any {@link WebSocketClient}.
@@ -27,11 +26,6 @@ import de.craftsblock.craftsnet.api.websocket.WebSocketClient;
  * @since 1.0.0
  */
 public class SimpleNetworkerSetupMiddleware implements WebsocketMiddleware {
-
-    /**
-     * The session attribute key used to store the {@link WebSocketClientNetworker}.
-     */
-    public static final String SESSION_NETWORKER_KEY = "networker";
 
     /**
      * Called when a new WebSocket connection is established.
@@ -51,7 +45,7 @@ public class SimpleNetworkerSetupMiddleware implements WebsocketMiddleware {
             throw new IllegalStateException("The websocket packets addon is not loaded!");
 
         WebSocketClient client = exchange.client();
-        client.getSession().put("networker", new WebSocketClientNetworker(addon.getEnvironment(), client));
+        client.getContext().put(new WebSocketClientNetworker(addon.getEnvironment(), client));
     }
 
     /**
@@ -64,7 +58,7 @@ public class SimpleNetworkerSetupMiddleware implements WebsocketMiddleware {
      */
     @Override
     public void handleDisconnect(MiddlewareCallbackInfo callbackInfo, SocketExchange exchange) {
-        exchange.client().getSession().remove("networker");
+        exchange.client().getContext().remove(WebSocketClientNetworker.class);
     }
 
     /**
@@ -75,7 +69,7 @@ public class SimpleNetworkerSetupMiddleware implements WebsocketMiddleware {
      * @return The associated {@link WebSocketClientNetworker}, or {@code null} if not set.
      */
     public static WebSocketClientNetworker getNetworker(WebSocketClient client) {
-        return client.getSession().getAsType(SESSION_NETWORKER_KEY, WebSocketClientNetworker.class);
+        return client.getContext().getTyped(WebSocketClientNetworker.class);
     }
 
 }
