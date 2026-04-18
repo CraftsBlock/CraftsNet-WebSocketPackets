@@ -1,9 +1,15 @@
+plugins {
+    id "de.craftsblock.gradle.publish" version "0.0.20" apply false
+}
+
+group = "de.craftsblock.craftsnet.modules.websocketpackets"
+version = "1.1.1"
+
 subprojects {
     apply plugin: "java"
-    apply from: "$rootDir/gradle/publications.gradle"
 
-    group = 'de.craftsblock.craftsnet.modules.websocketpackets'
-    version = '1.1.1'
+    group = "${rootProject.group}.${rootProject.name.toLowerCase()}"
+    version = rootProject.version
 
     java {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -41,5 +47,55 @@ subprojects {
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
+    }
+
+    afterEvaluate {
+        def softwareComponent = project.components.findByName("java")
+                ?: project.components.findByName("javaPlatform")
+
+        if (softwareComponent != null && softwareComponent.name.equalsIgnoreCase("java")) {
+            dependencies {
+                // https://mvnrepository.com/artifact/org.jetbrains/annotations
+                implementation "org.jetbrains:annotations:26.1.0"
+            }
+        }
+
+        if (project.ext.has("shouldPublish") && !project.ext["shouldPublish"]) {
+            return
+        }
+
+        apply plugin: "maven-publish"
+        apply plugin: "de.craftsblock.gradle.publish"
+
+        craftsPublish {
+            artifactId = project.name
+            name = "websocket-packets ${project.name}"
+
+            component = softwareComponent
+
+            pom {
+                name = project.name
+                description = project.description
+                url = "https://github.com/CraftsBlock/CraftsNet-WebSocketPackets"
+
+                scm {
+                    url = 'https://github.com/CraftsBlock/CraftsNet-WebSocketPackets'
+                    connection = 'scm:git:git://github.com/CraftsBlock/CraftsNet-WebSocketPackets.git'
+                    developerConnection = 'scm:git:git@github.com:CraftsBlock/CraftsNet-WebSocketPackets.git'
+                }
+
+                issueManagement {
+                    system = 'github'
+                    url = 'https://github.com/CraftsBlock/CraftsNet-WebSocketPackets/issues'
+                }
+
+                licenses {
+                    license {
+                        name = 'Apache License 2.0'
+                        url = 'https://github.com/CraftsBlock/CraftsNet-WebSocketPackets/blob/master/LICENSE'
+                    }
+                }
+            }
+        }
     }
 }

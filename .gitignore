@@ -76,4 +76,4 @@ addons
 logs
 libraries
 
-.env
+.env.*
